@@ -91,35 +91,7 @@ CONTAINER ID        IMAGE                           COMMAND                  CRE
 / # $KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
  ```
  
-works only on local host machine:
-```
-version: '2'
-
-services:
-
-  zookeeper:
-    image: wurstmeister/zookeeper:3.4.6
-    expose:
-    - "2181"
-
-  kafka:
-    image: wurstmeister/kafka:2.11-2.0.0
-    depends_on:
-    - zookeeper
-    ports:
-    - "9092:9092"
-    expose:
-    - "9093"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
- ```
-
-
-this works with consumer outside host with kafka container:
+this works with consumer/producer outside host with kafka container:
 ```
 [jcluser@centos ~]$ cat docker-compose.yml.bak1
 version: '2'
@@ -153,7 +125,64 @@ services:
  ```
  from another host:
  ```
+ [jcluser@centos ~]$ python3
+Python 3.6.8 (default, Apr 25 2019, 21:02:35)
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from kafka import KafkaProducer
+>>> producer = KafkaProducer(bootstrap_servers=['100.123.34.0:9092'])
+>>>
+>>> data = b"hi"
+>>> producer.send('test', value=data)
+<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697160>
+>>> producer.send('test', value=b'mimimi mamama gugugugu')
+<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697e48>
+
  [jcluser@centos ~]$ python3 consumer.py
+ b'hi'
+b'mimimi mamama gugugugu'
+ ```
+ ```
+ [jcluser@centos ~]$ cat consumer.py
+from kafka import KafkaConsumer
+
+consumer = KafkaConsumer(
+    'test',
+     auto_offset_reset='earliest',
+     bootstrap_servers=['100.123.34.0:9092']
+     )
+
+for message in consumer:
+    message = message.value
+    print(message)
  ```
  
- 
+
+
+
+works only on local host machine:
+```
+version: '2'
+
+services:
+
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    expose:
+    - "2181"
+
+  kafka:
+    image: wurstmeister/kafka:2.11-2.0.0
+    depends_on:
+    - zookeeper
+    ports:
+    - "9092:9092"
+    expose:
+    - "9093"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+ ```
