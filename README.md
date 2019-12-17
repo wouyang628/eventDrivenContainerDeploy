@@ -29,4 +29,16 @@ if error "Got permission denied while trying to connect to the Docker daemon soc
 See '/usr/bin/docker-current run --help'."
 then: sudo chmod 666 /var/run/docker.sock
 
+Configure Docker to start on boot:
+$ sudo systemctl enable docker
+
+```
+
+# install docker compose
+
+```
+sudo yum install python-pip python-devel gcc gcc-c++ make openssl-devel libffi-devel
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
 ```
