@@ -117,3 +117,43 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
  ```
+
+
+this works with consumer outside host with kafka container:
+```
+[jcluser@centos ~]$ cat docker-compose.yml.bak1
+version: '2'
+
+services:
+
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    expose:
+    - "2181"
+
+  kafka:
+    image: wurstmeister/kafka:2.11-2.0.0
+    depends_on:
+    - zookeeper
+    ports:
+    - "9092:9092"
+    expose:
+    - "9093"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://100.123.34.0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+ ```
+ ```
+ [jcluser@centos kafka_2.12-2.4.0]$ docker exec -it 65583b630c15 /bin/sh
+ # $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list kafka:9093 --topic test
+ ```
+ ```
+ from another host:
+ ```
+ [jcluser@centos ~]$ python3 consumer.py
+ ```
+ 
+ 
