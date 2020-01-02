@@ -84,7 +84,7 @@ CONTAINER ID        IMAGE                           COMMAND                  CRE
 [jcluser@centos ~]$ docker exec -it 51080e6d24af /bin/sh
  
  start a producer:
- $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+ $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list localhost:9093 --topic test
  ```
  
  test consumer:
