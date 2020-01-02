@@ -122,7 +122,7 @@ services:
  [jcluser@centos kafka_2.12-2.4.0]$ docker exec -it 65583b630c15 /bin/sh
  # $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list kafka:9093 --topic test
  ```
- ```
+
  from another host:
  ```
  [jcluser@centos ~]$ python3
