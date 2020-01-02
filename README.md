@@ -140,6 +140,29 @@ for message in consumer:
  ```
  
 
+docker-compose.yml file for elasticsearch
+```
+[jcluser@centos ~]$ cat docker-compose-ek.yml
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+```
+
+to trouble shoot container:
+```
+docker logs <container_id>
+```
+
+
+
+
+
 
 
 works only on local host machine:
