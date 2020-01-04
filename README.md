@@ -140,7 +140,7 @@ for message in consumer:
  ```
  
 
-docker-compose.yml file for elasticsearch
+# docker-compose.yml file for elasticsearch and kibana
 ```
 [jcluser@centos ~]$ cat docker-compose-ek.yml
 version: '2'
@@ -152,9 +152,17 @@ services:
       - "9300:9300"
     environment:
       - discovery.type=single-node
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.3.2
+    ports:
+      - "5601:5601"
+```
+make sure to set the max map count
+```
+sudo sysctl -w vm.max_map_count=262144
 ```
 
-to trouble shoot container:
+to trouble shoot the containers:
 ```
 docker logs <container_id>
 ```
@@ -165,6 +173,7 @@ docker logs <container_id>
 
 
 
+# Other
 works only on local host machine:
 ```
 version: '2'
