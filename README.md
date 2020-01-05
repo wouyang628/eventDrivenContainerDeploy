@@ -167,9 +167,15 @@ to trouble shoot the containers:
 docker logs <container_id>
 ```
 
-
-
-
+# install python packages
+install pip3
+```
+sudo yum install python36 python-pip
+sudo yum install python36-setuptools
+sudo easy_install-3.6 pip
+sudo pip3 install kafka
+sudo pip3 install elasticsearch
+```
 
 
 
