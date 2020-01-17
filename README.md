@@ -1,4 +1,4 @@
-# kafkacontainer
+This is to deploy EventConsumer and Remediation service with Python EventConsumer/Remediation App, Kafka, Elasticsearch and Kibana containers.
 
 # install docker for centos
 
