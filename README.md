@@ -1,7 +1,20 @@
 This is to deploy EventConsumer and Remediation service with Python EventConsumer/Remediation App, Kafka, Elasticsearch and Kibana containers.
 
-# install docker for centos
+This is the instructions for setting it up using JCL with blueprint EDI.  
 
+Login to JCL https://jlabs.juniper.net/jcl/portal/index.page From the reserve the blue print, reserve EDI
+![JCL-EDI](uploads/73a43f6832b84fb4293db8fe53a7895e/JCL-EDI.png)
+
+Use the following settings when reserve:  
+![reserve-settings](uploads/a7dc362a9add2a83f6db42a6a25cc17e/reserve-settings.png)
+
+# deploy Kafka, Elasticsearch and Kibana 
+We are using docker and ansible to deploy all these services as containers. Please make sure you have docker and ansible installed.
+
+Login to the Centos A1(100.123.34.0) box:
+
+## install docker for Centos
+for details please refer to https://docs.docker.com/install/linux/docker-ce/centos/
 ```
 $ sudo yum install -y yum-utils \
   device-mapper-persistent-data \
@@ -31,144 +44,21 @@ then: sudo chmod 666 /var/run/docker.sock
 
 Configure Docker to start on boot:
 $ sudo systemctl enable docker
-
 ```
 
-# install docker compose
-
-```
-sudo yum install python-pip python-devel gcc gcc-c++ make openssl-devel libffi-devel
-sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-docker-compose --version
-```
-
-# create docker-compose file
-```
-[jcluser@centos ~]$ cat docker-compose.yml.bak1
-version: '2'
-
-services:
-
-  zookeeper:
-    image: wurstmeister/zookeeper:3.4.6
-    expose:
-    - "2181"
-
-  kafka:
-    image: wurstmeister/kafka:2.11-2.0.0
-    depends_on:
-    - zookeeper
-    ports:
-    - "9092:9092"
-    expose:
-    - "9093"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://100.123.34.0:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
- ```
- bootup:
- ```
- docker-compose up -d
- ```
- test producer:
- ```
- login to the container:
- [jcluser@centos ~]$ docker ps
-CONTAINER ID        IMAGE                           COMMAND                  CREATED             STATUS              PORTS                                  NAMES
-51080e6d24af        wurstmeister/kafka:2.11-2.0.0   "start-kafka.sh"         47 seconds ago      Up 46 seconds       0.0.0.0:9092->9092/tcp                 jcluser_kafka_1
-833c39f1d2bb        wurstmeister/zookeeper:3.4.6    "/bin/sh -c '/usr/..."   48 seconds ago      Up 47 seconds       22/tcp, 2181/tcp, 2888/tcp, 3888/tcp   jcluser_zookeeper_1
-[jcluser@centos ~]$ docker exec -it 51080e6d24af /bin/sh
- 
- start a producer:
- $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list localhost:9093 --topic test
- ```
- 
- test consumer:
- ```
- [jcluser@centos ~]$ docker exec -it 51080e6d24af /bin/sh
-/ #
-/ # $KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
- ```
- 
- ```
- [jcluser@centos kafka_2.12-2.4.0]$ docker exec -it 65583b630c15 /bin/sh
- # $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list kafka:9093 --topic test
- ```
-
- from another host:
-```
-sudo yum install python36 python-pip
-sudo yum install python36-setuptools
-sudo easy_install-3.6 pip
-sudo pip3 install kafka
-```
- ```
- [jcluser@centos ~]$ python3
-Python 3.6.8 (default, Apr 25 2019, 21:02:35)
-[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>> from kafka import KafkaProducer
->>> producer = KafkaProducer(bootstrap_servers=['100.123.34.0:9092'])
->>>
->>> data = b"hi"
->>> producer.send('test', value=data)
-<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697160>
->>> producer.send('test', value=b'mimimi mamama gugugugu')
-<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697e48>
-
- [jcluser@centos ~]$ python3 consumer.py
- b'hi'
-b'mimimi mamama gugugugu'
- ```
- ```
- [jcluser@centos ~]$ cat consumer.py
-from kafka import KafkaConsumer
-
-consumer = KafkaConsumer(
-    'test',
-     auto_offset_reset='earliest',
-     bootstrap_servers=['100.123.34.0:9092']
-     )
-
-for message in consumer:
-    message = message.value
-    print(message)
- ```
- 
-
-# docker-compose.yml file for elasticsearch and kibana
-```
-[jcluser@centos ~]$ cat docker-compose-ek.yml
-version: '2'
-services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    environment:
-      - discovery.type=single-node
-  kibana:
-    image: docker.elastic.co/kibana/kibana:6.3.2
-    ports:
-      - "5601:5601"
-```
-make sure to set the max map count
+## change settings to run Elasticsearch
 ```
 sudo sysctl -w vm.max_map_count=262144
 ```
 
-to trouble shoot the containers:
+##
 ```
-docker logs <container_id>
-```
+sudo yum install python-pip
+sudo pip install docker-py
 
-# install python packages
-install pip3
+```
+## install python3 packages for kafka and elasticsearch testing
+JCL Centos box has Python3.6 by default (as of Jan 05, 2020)
 ```
 sudo yum install python36 python-pip
 sudo yum install python36-setuptools
@@ -177,35 +67,180 @@ sudo pip3 install kafka
 sudo pip3 install elasticsearch
 ```
 
-
-
-# Other
-works only on local host machine:
+## install Junos PyEZ packages for junos automation
 ```
-version: '2'
+sudo pip3 install junos-eznc
+```
 
-services:
+## install other packages needed
+```
+sudo yum install python-pip python-devel gcc gcc-c++ make openssl-devel libffi-devel
+sudo pip3 install requests
+```
 
-  zookeeper:
-    image: wurstmeister/zookeeper:3.4.6
-    expose:
-    - "2181"
+## clone the project
+```
+[jcluser@centos ~]$git clone git@ssd-git.juniper.net:CPO-Solutions-Automation/edi.git
+```
+For some reason, JCL cannot access the project, you can manually download the project and upload to JCL CentOS-A1 server.
 
-  kafka:
-    image: wurstmeister/kafka:2.11-2.0.0
-    depends_on:
-    - zookeeper
-    ports:
-    - "9092:9092"
-    expose:
-    - "9093"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+## set up keyless login from CentOS-A1(100.123.34.0) to CentOS-A2(100.123.34.1)
+set up keyless login from CentOS-A1(100.123.34.0) to CentOS-A2(100.123.34.1), we will use CentOS-A2 for event consumer/remediation container
+on 100.123.34.0, generate keys:
+```
+[jcluser@centos ~]$ ssh-keygen -t rsa
+```
+copy the keys to the remote 100.123.34.1 server:
+```
+cat .ssh/id_rsa.pub | ssh jcluser@100.123.34.1 'mkdir -p ~/.ssh && chmod 700 ~/.ssh&& chmod 640 .ssh/authorized_keys && cat >>  ~/.ssh/authorized_keys'
+```
+
+## Use ansible playbook to deploy the containers
+check your inventory file, we use current server CentOS-A1(100.123.34.0) to host Kafka, Elastic and Kibana. Use server CentOS-A2(100.123.34.1) to host event-consumer-remediation container.
+```
+[jcluser@centos ~]$ cd edi/ansible/
+[jcluser@centos ansible]$ cat inventory
+[server_kek]
+127.0.0.1
+
+[server_event]
+100.123.34.1
+```
+run the ansible playbook
+```
+[jcluser@centos ansible]$ ansible-playbook -i inventory deploy_all.yml
+
+PLAY [deploy kafka, elasticsearch and kibana containers] ***********************************************************************************************************************************
+
+TASK [deploy_zookeeper : deploy zookeeper] *************************************************************************************************************************************************
+[DEPRECATION WARNING]: Please note that docker_container handles networks slightly different than docker CLI. If you specify networks, the default network will still be attached as the
+first network. (You can specify purge_networks to remove all networks not explicitly listed.) This behavior will change in Ansible 2.12. You can change the behavior now by setting the new
+ `networks_cli_compatible` option to `yes`, and remove this warning by setting it to `no`. This feature will be removed in version 2.12. Deprecation warnings can be disabled by setting
+deprecation_warnings=False in ansible.cfg.
+changed: [127.0.0.1]
+
+TASK [deploy_kafka : deploy kafka] *********************************************************************************************************************************************************
+changed: [127.0.0.1]
+
+TASK [deploy_elasticsearch : deploy elasticsearch] *****************************************************************************************************************************************
+changed: [127.0.0.1]
+
+TASK [deploy_kibana : deploy kibana] *******************************************************************************************************************************************************
+changed: [127.0.0.1]
+
+PLAY [deploy event consumer and remediation server] ****************************************************************************************************************************************
+
+TASK [deploy_event : deploy event] *********************************************************************************************************************************************************
+changed: [100.123.34.1]
+
+PLAY RECAP *********************************************************************************************************************************************************************************
+100.123.34.1               : ok=1    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+127.0.0.1                  : ok=4    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+make sure Kafka, Elasticsearch and Kibana are all up and running on CentOS-A1:
+```
+[jcluser@centos ansible]$ docker ps
+CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+fef1343b0ee5        docker.elastic.co/kibana/kibana:7.5.1                 "/usr/local/bin/du..."   22 hours ago        Up 7 minutes        0.0.0.0:5601->5601/tcp                           kibana
+cc5ece1f2069        docker.elastic.co/elasticsearch/elasticsearch:7.5.1   "/usr/local/bin/do..."   22 hours ago        Up 7 minutes        0.0.0.0:9200->9200/tcp, 0.0.0.0:9300->9300/tcp   elasticsearch
+e278ea4d5036        wurstmeister/kafka:2.11-2.0.0                         "start-kafka.sh"         22 hours ago        Up 7 minutes        0.0.0.0:9092->9092/tcp, 9093/tcp                 kafka
+22c2e83b943e        wurstmeister/zookeeper:3.4.6                          "/bin/sh -c '/usr/..."   22 hours ago        Up 7 minutes        22/tcp, 2181/tcp, 2888/tcp, 3888/tcp             zookeeper
+```
+login to CentOS-A2, make sure event-consumer-remediation container is up and running:
+```
+[jcluser@centos ansible]$ ssh jcluser@100.123.34.1
+Last login: Wed Jan 22 15:43:31 2020 from 100.123.34.0
+[jcluser@centos ~]$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+99875998a672        edi                 "/bin/sh -c 'pytho..."   17 hours ago        Up 7 minutes                            edi
+[jcluser@centos ~]$
+```
+From the JCL sandbox GUI, click "Http UserDef1" from the CentOS-A1 menu:
+![kibana1](uploads/0a1b6d15e0867153bab514cbddd411ac/kibana1.png)
+make sure Kibana GUI can be opened:
+![kibana2](uploads/42078bc1918b7e2e049de8f737021856/kibana2.png)
+
+
+# Other notes
+## If you plan to use docker compose to start up the containers
+
+## install docker compose
+for details please refer to https://docs.docker.com/compose/install/
+```
+sudo yum install python-pip python-devel gcc gcc-c++ make openssl-devel libffi-devel
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+```
+
+```
+[jcluser@centos ~]$ cd edi/
+[jcluser@centos edi]$ docker-compose up -d
+docker-compose up -d
+```
+check all containers are running:
+```
+[jcluser@centos ~]$ docker ps
+CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+fb8b6263fa83        wurstmeister/kafka:2.11-2.0.0                         "start-kafka.sh"         5 hours ago         Up 5 hours          0.0.0.0:9092->9092/tcp, 9093/tcp                 jcluser_kafka_1
+213cca63f70b        docker.elastic.co/kibana/kibana:6.3.2                 "/usr/local/bin/ki..."   5 hours ago         Up 5 hours          0.0.0.0:5601->5601/tcp                           jcluser_kibana_1
+3551be48b1f2        docker.elastic.co/elasticsearch/elasticsearch:7.5.1   "/usr/local/bin/do..."   5 hours ago         Up 5 hours          0.0.0.0:9200->9200/tcp, 0.0.0.0:9300->9300/tcp   jcluser_elasticsearch_1
+9a05b62d8cda        wurstmeister/zookeeper:3.4.6                          "/bin/sh -c '/usr/..."   5 hours ago         Up 5 hours          22/tcp, 2181/tcp, 2888/tcp, 3888/tcp             jcluser_zookeeper_1
+```
+
+## Validate the Kafka container  
+To test the producer, login to the container:
+```
+[jcluser@centos ~]$ docker exec -it <container_id> /bin/sh
+```
+To start a producer:
+```
+ $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list kafka:9093 --topic test
+```
+ 
+To test the consumer:
  ```
+ [jcluser@centos ~]$ docker exec -it 51080e6d24af /bin/sh
+ $KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server kafka:9093 --topic test --from-beginning
+ ```
+
+To test from another host machine:
+```
+[jcluser@centos ~]$ python3
+Python 3.6.8 (default, Apr 25 2019, 21:02:35)
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from kafka import KafkaProducer
+>>> producer = KafkaProducer(bootstrap_servers=['<kafka_broker_server_ip>:9092'])
+>>>
+>>> data = b"hi"
+>>> producer.send('test', value=data)
+<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697160>
+>>> producer.send('test', value=b'mimimi mamama gugugugu')
+<kafka.producer.future.FutureRecordMetadata object at 0x7f7792697e48>
+
+[jcluser@centos ~]$ vi consumer.py
+from kafka import KafkaConsumer
+consumer = KafkaConsumer(
+    'test',
+     auto_offset_reset='earliest',
+     bootstrap_servers=['100.123.34.0:9092']
+     )
+for message in consumer:
+    message = message.value
+    print(message)
+[jcluser@centos ~]$ python3 consumer.py
+b'hi'
+ ```
+
+## use Helper VM to load the network config
+login to the helperVM
+```
+[root@HelperVM-0114 ~]#git clone git@git.cloudlabs.juniper.net:wouyang/edi.git
+[root@HelperVM-0114 ~]# cd edi/
+[root@HelperVM-0114 ~]# ansible-playbook install-config-to-device.yml
+```
+
 
 # Test Cases
  The follow test cases are simplified version of different scenarios. Because the user action part is highly customizable, more complicated use cases can be built considering more conditions.  
