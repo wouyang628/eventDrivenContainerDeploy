@@ -1,0 +1,8 @@
+---
+- name: build the docker image for event consume/remediation and archive it locally
+  docker_image:
+    build:
+      path: "{{ build_path }}"
+    name: "{{ image_name }}"
+    archive_path: "{{ archive_path }}"
+    source: local

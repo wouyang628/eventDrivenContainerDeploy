@@ -1,0 +1,11 @@
+---
+- name: deploy zookeeper
+  docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}:{{ release }}"
+    exposed_ports:
+      - "{{ exposed_ports }}"
+    networks:
+      - name: "{{ networks }}"
+    state: started
+    restart: yes

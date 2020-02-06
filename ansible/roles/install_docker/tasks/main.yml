@@ -1,0 +1,44 @@
+---
+- name: install a list of packages
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+  become: yes
+
+- name: set up the stable repository
+  command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  become: yes
+
+- name: Install the latest version of Docker Engine
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - docker-ce
+    - docker-ce-cli
+    - lvm2
+  become: yes
+
+#    - name: add group
+#      command: groupadd docker
+#      become: yes
+
+- name: add user mod
+  command: usermod -aG docker "{{ user_name }}"
+  become: yes
+
+- name: start docker
+  command: systemctl start docker
+  become: yes
+
+- name: Configure Docker to start on boot
+  command: systemctl enable docker
+  become: yes
+
+- name: install pip docker
+  pip:
+    name: docker

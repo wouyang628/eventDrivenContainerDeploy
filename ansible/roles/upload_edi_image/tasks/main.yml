@@ -1,0 +1,5 @@
+---
+- name: copy edi_image to remote event consume/remediation server
+  copy:
+    src: "{{ src }}"
+    dest: "{{ dest }}"

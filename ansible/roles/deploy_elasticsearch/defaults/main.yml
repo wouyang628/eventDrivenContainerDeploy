@@ -1,0 +1,8 @@
+---
+container_name: "elasticsearch"
+image_name: "docker.elastic.co/elasticsearch/elasticsearch"
+release: "7.5.1"
+ports1: "9200:9200"
+ports2: "9300:9300"
+discovery_type: "single-node"
+networks: "edi_default"

@@ -1,0 +1,8 @@
+---
+load_path: "/tmp/edi_image.tar"
+container_name: "edi"
+image_name: "edi"
+KAFKA_IP: "100.123.34.0"
+KAFKA_PORT: "9092"
+ELASTIC_IP: "100.123.34.0"
+ELASTIC_PORT: "9200"

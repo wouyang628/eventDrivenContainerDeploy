@@ -1,0 +1,19 @@
+---
+- name: deploy kafka
+  docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}:{{ release }}"
+    ports:
+      - "{{ ports }}"
+    expose:
+      - "{{ expose_ports }}"
+    env:
+      KAFKA_ADVERTISED_LISTENERS: "{{ KAFKA_ADVERTISED_LISTENERS }}"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "{{ KAFKA_LISTENER_SECURITY_PROTOCOL_MAP }}"
+      KAFKA_LISTENERS: "{{ KAFKA_LISTENERS }}"
+      KAFKA_ZOOKEEPER_CONNECT: "{{ KAFKA_ZOOKEEPER_CONNECT }}"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "{{ KAFKA_INTER_BROKER_LISTENER_NAME }}"
+    networks:
+      - name: "{{ networks }}"
+    state: started
+    restart: yes

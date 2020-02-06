@@ -1,0 +1,14 @@
+---
+- name: deploy elasticsearch
+  docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}:{{ release }}"
+    ports:
+      - "{{ ports1 }}"
+      - "{{ ports2 }}"
+    env:
+      discovery.type: "{{ discovery_type }}"
+    networks:
+      - name: "{{ networks }}"
+    state: started
+    restart: yes
