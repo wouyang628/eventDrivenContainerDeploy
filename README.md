@@ -1,4 +1,4 @@
-# Setting up JCL Lab
+# Setting up Event Driven on Juniper Could Lab
 
 This is the instructions for setting it up using JCL with blueprint EDI.  
 
@@ -194,13 +194,13 @@ login to the helperVM
 
 ## Configure Kibana
 From the JCL sandbox GUI, click "Http UserDef1" from the CentOS-A1 menu:
-![kibana1](uploads/0a1b6d15e0867153bab514cbddd411ac/kibana1.png)
+![kibana1](uploads/kibana1.png)
 
 create Index:
-![kibana4](uploads/1d4ae1de3637c4ba6b69884507672ccd/kibana4.png)
+![kibana4](uploads/kibana4.png)
 
 if there are events, then it can be displaed:
-![kibana2](uploads/42078bc1918b7e2e049de8f737021856/kibana2.png)
+![kibana2](uploads/kibana2.png)
 
 
 # Other notes
