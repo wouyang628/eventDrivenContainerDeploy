@@ -3,10 +3,10 @@
 This is the instructions for setting it up using JCL with blueprint EDI.  
 
 Login to JCL https://jlabs.juniper.net/jcl/portal/index.page From the reserve the blue print, reserve EDI
-![JCL-EDI](uploads/73a43f6832b84fb4293db8fe53a7895e/JCL-EDI.png)
+![JCL-EDI](uploads/JCL-EDI.png)
 
 Use the following settings when reserve:  
-![reserve-settings](uploads/a7dc362a9add2a83f6db42a6a25cc17e/reserve-settings.png)
+![reserve-settings](uploads/reserve-settings.png)
 
 
 
